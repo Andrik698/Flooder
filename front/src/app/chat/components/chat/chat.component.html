@@ -1,0 +1,159 @@
+<nav class="nav">
+  <div class="nav-logo">
+    <img src="../../../assets/images/logo-sm.png" alt="">
+    <h2>Flooder</h2>
+  </div>
+  <p class="nav-connected-users-count"
+     (click)="isConnectedListActive = !isConnectedListActive"
+     *ngIf="(isAddedUserId$ | async)">
+    В сети: {{ (connectedUsers$ | async).length }}
+  </p>
+  <div class="nav-user">
+    <p>{{ user$ | async }}</p>
+    <img *ngIf="img$" [src]="img$">
+  </div>
+</nav>
+<div *ngIf="alertMessage" class="alert alert-danger" role="alert">
+  {{alertMessage}}
+</div>
+<div class="wrapper">
+  <div class="side-menu" [class.side-menu-active]="isConnectedListActive">
+    <div *ngIf="(isAddedUserId$ | async); else loading">
+      <p class="connected-users-count">Участники: {{ (connectedUsers$ | async).length }}</p>
+      <div class="connected-users" *ngFor="let user of (connectedUsers$ | async)">
+        <p *ngIf="user.userId === (userId$)" class="connected-users-author">Вы: </p>
+        <img [src]="user.img">
+        <p>{{ user.username }}</p>
+        <span *ngIf="user.userId !== (userId$)"
+              data-testid="chat" data-icon="chat" class=""
+              (click)="addresedTo(user.username)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19.005 3.175H4.674C3.642 3.175 3 3.789 3 4.821V21.02l3.544-3.514h12.461c1.033 0 2.064-1.06 2.064-2.093V4.821c-.001-1.032-1.032-1.646-2.064-1.646zm-4.989 9.869H7.041V11.1h6.975v1.944zm3-4H7.041V7.1h9.975v1.944z"></path></svg>
+      </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-main">
+    <div *ngIf="notificationMessage" class="alert alert-success" role="alert">
+      {{notificationMessage}}
+    </div>
+    <div class="chat-message-container" id="message-container" *ngIf="(isAddedUserId$ | async); else loading">
+
+      <div>
+        <div class="message" [class.author]="message.userId === (userId$)" *ngFor="let message of (messages$ | async)">
+
+          <div class="message-card">
+            <div *ngIf="message.answerMessageId">
+              <div *ngFor="let answer of (messages$ | async)">
+                <div *ngIf="answer.messageId === message.answerMessageId">
+                  <div class="answer" [class.answer-author]="message.userId === (userId$)"
+                       [class.answer-to-author]="answer.userId === (userId$)">
+                    <img *ngIf="answer.img" src="{{ answer.img }}" alt="" class="answer-img">
+                    <div>
+                      <p>{{ answer.username }}<small>{{ answer.date | date: 'HH:mm' }}</small></p>
+                      <p>{{ answer.body | shortText }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="message-title" *ngIf="message.userId !== (userId$)">
+              <img [src]="message.avatar">
+              <p>{{ message.username }}</p>
+            </div>
+            <img *ngIf="message.img" src="{{ message.img }}" alt="" class="message-img">
+            <pre class="message-card-body">{{ message.body }}</pre>
+            <span>{{ message.date | date: 'HH:mm'}}</span>
+          </div>
+
+          <div class="buttons-group">
+            <div class="buttons-group-center" [class.buttons-group-center-author]="message.userId === (userId$)">
+              <span data-testid="forward-chat" data-icon="forward-chat" class="resend">
+                <svg (click)="answer(message.messageId)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 25" width="25" height="25"><path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M14.248 6.973a.688.688 0 0 1 1.174-.488l5.131 5.136a.687.687 0 0 1 0 .973l-5.131 5.136a.688.688 0 0 1-1.174-.488v-2.319c-4.326 0-7.495 1.235-9.85 3.914-.209.237-.596.036-.511-.268 1.215-4.391 4.181-8.492 10.361-9.376v-2.22z"></path></svg>
+              </span>
+              <span data-testid="x" data-icon="x" class="delete"
+                    *ngIf="message.userId === (userId$)"
+                    (click)="deleteMessage(message.messageId)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19.1 17.2l-5.3-5.3 5.3-5.3-1.8-1.8-5.3 5.4-5.3-5.3-1.8 1.7 5.3 5.3-5.3 5.3L6.7 19l5.3-5.3 5.3 5.3 1.8-1.8z"></path></svg>
+              </span>
+            </div>
+          </div>
+
+        </div>
+        <div class="message" *ngIf="(isMessageSending$ | async)">
+          <div class="spinner spinner-new-message">
+            <div class="spinner-border text-dark" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="file-container" *ngIf="answerMessageId || sendJpg">
+      <div *ngIf="answerMessageId">
+        <div *ngFor="let answer of (messages$ | async)">
+          <div *ngIf="answer.messageId === answerMessageId" class="answer answer-new">
+            <img src="{{ answer.img }}" alt="" class="answer-img">
+            <div>
+              <p>{{ answer.username }}<small>{{ answer.date | date: 'HH:mm' }}</small></p>
+              <p id="answer-body">{{ answer.body | shortText }}</p>
+            </div>
+            <span (click)="deleteAnswer()"
+                  data-testid="x" data-icon="x"
+                  class="delete-new-answer-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19.1 17.2l-5.3-5.3 5.3-5.3-1.8-1.8-5.3 5.4-5.3-5.3-1.8 1.7 5.3 5.3-5.3 5.3L6.7 19l5.3-5.3 5.3 5.3 1.8-1.8z"></path></svg>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="sendJpg" class="new-img">
+        <img [src]="sendJpg" class="img-to-send" alt="">
+        <span (click)="deleteImg()"
+              data-testid="x" data-icon="x"
+              class="delete-new-img-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19.1 17.2l-5.3-5.3 5.3-5.3-1.8-1.8-5.3 5.4-5.3-5.3-1.8 1.7 5.3 5.3-5.3 5.3L6.7 19l5.3-5.3 5.3 5.3 1.8-1.8z"></path></svg>
+        </span>
+      </div>
+    </div>
+
+    <div class="chat-input-container">
+      <input [(ngModel)]="imgInput"
+              style="display: none"
+              type="file" accept="image/*"
+              (change)="onFileChanged($event)"
+              #fileInput id="fileInput">
+      <button [disabled]="!(isAddedUserId$ | async)"
+              (click)="fileInput.click()"
+              class="hidden-btn">
+        <span data-testid="clip" data-icon="clip"
+              class="add-file-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M1.816 15.556v.002c0 1.502.584 2.912 1.646 3.972s2.472 1.647 3.974 1.647a5.58 5.58 0 0 0 3.972-1.645l9.547-9.548c.769-.768 1.147-1.767 1.058-2.817-.079-.968-.548-1.927-1.319-2.698-1.594-1.592-4.068-1.711-5.517-.262l-7.916 7.915c-.881.881-.792 2.25.214 3.261.959.958 2.423 1.053 3.263.215l5.511-5.512c.28-.28.267-.722.053-.936l-.244-.244c-.191-.191-.567-.349-.957.04l-5.506 5.506c-.18.18-.635.127-.976-.214-.098-.097-.576-.613-.213-.973l7.915-7.917c.818-.817 2.267-.699 3.23.262.5.501.802 1.1.849 1.685.051.573-.156 1.111-.589 1.543l-9.547 9.549a3.97 3.97 0 0 1-2.829 1.171 3.975 3.975 0 0 1-2.83-1.173 3.973 3.973 0 0 1-1.172-2.828c0-1.071.415-2.076 1.172-2.83l7.209-7.211c.157-.157.264-.579.028-.814L11.5 4.36a.572.572 0 0 0-.834.018l-7.205 7.207a5.577 5.577 0 0 0-1.645 3.971z"></path></svg>
+        </span>
+      </button>
+      <textarea [(ngModel)]="text"
+                (keydown)="keyDown($event)"
+                [disabled]="!(isAddedUserId$ | async)"
+                placeholder="Введите сообщение"
+                autofocus [autofocus]="true" id="textarea" type="text" class="chat-input">
+      </textarea>
+      <button (click)="submit()"
+              *ngIf="text.trim() !== '' || sendJpg"
+              class="submit-button">
+        <span data-testid="send" data-icon="send" class="">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="spinner">
+    <div class="spinner-border text-dark" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+</ng-template>

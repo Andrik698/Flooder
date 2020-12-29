@@ -1,0 +1,49 @@
+<div class="wrapper">
+  <div class="img-background">
+    <div *ngIf="!networkStatus$" class="alert alert-danger" role="alert">
+      {{alertMessage}}
+    </div>
+    <div class="nav-logo">
+      <img src="../../../assets/images/logo.png" alt="">
+      <h2>Flooder</h2>
+    </div>
+
+    <div class="auth">
+      <h1>Добро пожаловать</h1>
+      <div class="auth-user">
+        <img *ngIf="!(isLoading$ | async)" (load)="imgIsLoaded = true" [src]="(img$ | async).thumbnailUrl" style="display: none">
+        <div class="img-container" *ngIf="!(isLoading$ | async) && imgIsLoaded; else loading">
+          <img *ngIf="!(isLoading$ | async)"  [src]="(img$ | async).thumbnailUrl" alt="">
+          <button (click)="changeImage(); imgIsLoaded = false">
+            <svg height="100%" version="1.1" viewBox="0 0 36 36"> <use class="" xlink:href="#ytp-id-134"></use> <path class="" d="M 18,11 V 7 l -5,5 5,5 v -4 c 3.3,0 6,2.7 6,6 0,3.3 -2.7,6 -6,6 -3.3,0 -6,-2.7 -6,-6 h -2 c 0,4.4 3.6,8 8,8 4.4,0 8,-3.6 8,-8 0,-4.4 -3.6,-8 -8,-8 z" id="ytp-id-134"></path></svg>
+          </button>
+        </div>
+        <div class="auth-name">
+          <h3>Ваше имя:</h3>
+          <p>{{ name }}</p>
+          <button (click)="changeUsername()">
+            <svg height="100%" version="1.1" viewBox="0 0 36 36"><use class="" xlink:href="#ytp-id-134"></use><path class="" d="M 18,11 V 7 l -5,5 5,5 v -4 c 3.3,0 6,2.7 6,6 0,3.3 -2.7,6 -6,6 -3.3,0 -6,-2.7 -6,-6 h -2 c 0,4.4 3.6,8 8,8 4.4,0 8,-3.6 8,-8 0,-4.4 -3.6,-8 -8,-8 z" id="ytp-id-134"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <button (click)="login()"
+              [disabled]="(isLoading$ | async) || (isCheckingUser$ | async)"
+              class="auth-btn">
+        Login
+      </button>
+    </div>
+    <footer>
+      <p>Copyright © flooder.com, <a href="https://via.placeholder.com/150/232cb9">2020</a>. Все права защищены.</p>
+    </footer>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="spinner">
+    <div class="spinner-border text-dark" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+</ng-template>
+
